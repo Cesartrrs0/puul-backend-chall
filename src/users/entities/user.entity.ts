@@ -1,5 +1,5 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
-
+import { Column, CreateDateColumn, Entity, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Task } from '../../tasks/entities/task.entity';
 export enum UserRole {
     MEMBER = 'member',
     ADMIN = 'admin',
@@ -21,4 +21,7 @@ export class User{
 
     @CreateDateColumn({name: 'created_at'})
     createdAt: Date;
+
+    @ManyToMany(() => Task, (task) => task.assignedUsers)
+    tasks: Task[];
 }
