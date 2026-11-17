@@ -85,7 +85,7 @@ Se mandan solo los campos que se quieren cambiar. Para reasignar usuarios se man
 Elegí dos estadísticas que le sirven a quien lleva el equipo:
 
 1. **Avance del equipo (`summary`)**: cuántas tareas están activas, cuántas terminadas y cuántas están vencidas (activas con fecha de entrega pasada). Sirve para ver rápido si el equipo va atrasado.
-2. **Carga de trabajo por usuario (`workloadByUser`)**: para cada usuario, cuántas tareas activas tiene y cuántas horas estimadas le faltan, ordenado de mayor a menor. Sirve para ver quién está saturado y repartir mejor las tareas.
+2. **Carga de trabajo por usuario (`workloadByUser`)**: para cada usuario, cuántas tareas activas tiene y cuántas horas estimadas le faltan, ordenado de mayor a menor. Sirve para ver quién está saturado y repartir mejor las tareas. Crucial para un mejor manejo de tareas en trabajos en equipo.
 
 ```json
 {
@@ -96,7 +96,3 @@ Elegí dos estadísticas que le sirven a quien lleva el equipo:
 }
 ```
 
-## Notas
-
-- Las validaciones se hacen con `class-validator` en los DTOs; si un dato no es válido la API regresa 400.
-- Para el costo usé `float` para mantenerlo simple. En un sistema real usaría `numeric` para evitar errores de redondeo con dinero.
