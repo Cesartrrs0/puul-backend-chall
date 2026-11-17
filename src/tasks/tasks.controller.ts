@@ -18,6 +18,11 @@ export class TasksController {
     return this.tasksService.findAll(filters);
   }
 
+  @Get('analytics')
+  getAnalytics() {
+    return this.tasksService.getAnalytics();
+  }
+
   @Patch(':id')
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateTaskDto) {
     return this.tasksService.update(id, dto);

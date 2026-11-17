@@ -1,11 +1,11 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { In, LessThan, Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { FilterTasksDto } from './dto/filter-tasks.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
-import { Task } from './entities/task.entity';
+import { Task, TaskStatus } from './entities/task.entity';
 
 @Injectable()
 export class TasksService {
@@ -72,6 +72,42 @@ export class TasksService {
     const task = await this.findOne(id);
     await this.tasksRepository.remove(task);
     return { message: `Tarea ${id} eliminada` };
+  }
+
+  async getAnalytics() {
+    const today = new Date().toISOString().slice(0, 10);
+
+    // Estadística 1: avance del equipo
+    const summary = {
+      activeTasks: await this.tasksRepository.countBy({ status: TaskStatus.ACTIVE }),
+      finishedTasks: await this.tasksRepository.countBy({ status: TaskStatus.FINISHED }),
+      overdueTasks: await this.tasksRepository.countBy({
+        status: TaskStatus.ACTIVE,
+        dueDate: LessThan(today),
+      }),
+    };
+
+    // Estadística 2: carga de trabajo pendiente por usuario
+    const rows = await this.usersRepository
+      .createQueryBuilder('user')
+      .leftJoin('user.tasks', 'task', 'task.status = :active', {
+        active: TaskStatus.ACTIVE,
+      })
+      .select(['user.id AS "userId"', 'user.name AS name'])
+      .addSelect('COUNT(task.id)', 'activeTasks')
+      .addSelect('COALESCE(SUM(task.estimatedHours), 0)', 'pendingHours')
+      .groupBy('user.id')
+      .orderBy('"pendingHours"', 'DESC')
+      .addOrderBy('user.id', 'ASC')
+      .getRawMany();
+
+    const workloadByUser = rows.map((row) => ({
+      ...row,
+      activeTasks: Number(row.activeTasks),
+      pendingHours: Number(row.pendingHours),
+    }));
+
+    return { summary, workloadByUser };
   }
 
   private async findOne(id: number): Promise<Task> {
