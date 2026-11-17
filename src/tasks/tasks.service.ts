@@ -1,9 +1,10 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { FilterTasksDto } from './dto/filter-tasks.dto';
+import { UpdateTaskDto } from './dto/update-task.dto';
 import { Task } from './entities/task.entity';
 
 @Injectable()
@@ -52,6 +53,30 @@ export class TasksService {
     }
 
     return query.getMany();
+  }
+
+  async update(id: number, dto: UpdateTaskDto): Promise<Task> {
+    const task = await this.findOne(id);
+    const { assignedUserIds, ...data } = dto;
+
+    Object.assign(task, data);
+
+    if (assignedUserIds) {
+      task.assignedUsers = await this.findUsers(assignedUserIds);
+    }
+
+    return this.tasksRepository.save(task);
+  }
+
+  private async findOne(id: number): Promise<Task> {
+    const task = await this.tasksRepository.findOne({
+      where: { id },
+      relations: { assignedUsers: true },
+    });
+    if (!task) {
+      throw new NotFoundException(`La tarea ${id} no existe`);
+    }
+    return task;
   }
 
   private async findUsers(ids: number[]): Promise<User[]> {
