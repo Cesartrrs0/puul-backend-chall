@@ -68,6 +68,12 @@ export class TasksService {
     return this.tasksRepository.save(task);
   }
 
+  async remove(id: number): Promise<{ message: string }> {
+    const task = await this.findOne(id);
+    await this.tasksRepository.remove(task);
+    return { message: `Tarea ${id} eliminada` };
+  }
+
   private async findOne(id: number): Promise<Task> {
     const task = await this.tasksRepository.findOne({
       where: { id },
